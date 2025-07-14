@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manga Reader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+    }
+
+    header {
+      background: #292b2c;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #logo {
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    header input {
+      padding: 0.5rem;
+      font-size: 16px;
+      width: 50%;
+    }
+
+    #accountBtn {
+      background: #5cb85c;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    .section-title {
+      font-size: 20px;
+      margin: 1rem 2rem 0.5rem;
+    }
+
+    .manga-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .manga-card {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-align: center;
+      padding: 0.5rem;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+
+    .manga-card:hover {
+      transform: scale(1.03);
+    }
+
+    .manga-card img {
+      height: 140px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      margin-bottom: 0.5rem;
+    }
+
+    .manga-card h2 {
+      font-size: 14px;
+      margin: 0.5rem 0;
+    }
+
+    .manga-card button {
+      margin-bottom: 0.5rem;
+      padding: 0.3rem 0.6rem;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .pagination {
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .pagination button {
+      margin: 0 5px;
+      padding: 0.5rem 1rem;
+      font-size: 16px;
+    }
+
+    .details-panel, #similarSection {
+      padding: 1rem 2rem;
+    }
+
+    .details-panel p {
+      margin: 0.3rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div id="logo">MangaReader</div>
+  <input type="text" id="searchInput" placeholder="Search manga..." />
+  <button id="accountBtn">Account</button>
+</header>
+
+<section id="savedSection"></section>
+<section id="detailsSection"></section>
+<main class="manga-grid" id="mangaList"></main>
+<section id="similarSection"></section>
+<div class="pagination" id="pagination"></div>
+
+<script>
+  const mangaData = [
+    {
+      title: "Cinderella Gray",
+      img: "https://cdn.myanimelist.net/images/manga/3/233332.jpg",
+      tags: ["uma musume", "sports", "drama"],
+      synopsis: "The story of Tokai Teio’s younger sister.",
+      chapters: 45,
+      writer: "Cygames",
+      status: "Ongoing"
+    },
+    {
+      title: "Starting Gate!",
+      img: "https://cdn.myanimelist.net/images/manga/3/197774.jpg",
+      tags: ["uma musume", "school", "sports"],
+      synopsis: "The school lives of the horse girls.",
+      chapters: 30,
+      writer: "Cygames",
+      status: "Finished"
+    },
+    {
+      title: "Umayon",
+      img: "https://cdn.myanimelist.net/images/manga/2/224610.jpg",
+      tags: ["uma musume", "comedy"],
+      synopsis: "A 4-koma comic based on Uma Musume.",
+      chapters: 24,
+      writer: "Cygames",
+      status: "Finished"
+    },
+    {
+      title: "Star Blossom",
+      img: "https://cdn.myanimelist.net/images/manga/1/262678.jpg",
+      tags: ["uma musume", "slice of life"],
+      synopsis: "Slice of life story from the Uma Musume world.",
+      chapters: 10,
+      writer: "Cygames",
+      status: "Ongoing"
+    },
+    {
+      title: "Naruto",
+      img: "https://cdn.myanimelist.net/images/manga/3/117681.jpg",
+      tags: ["fighting", "ninja"],
+      synopsis: "Naruto's journey to become Hokage.",
+      chapters: 700,
+      writer: "Masashi Kishimoto",
+      status: "Finished"
+    },
+    {
+      title: "Bleach",
+      img: "https://cdn.myanimelist.net/images/manga/3/52539.jpg",
+      tags: ["fighting", "action"],
+      synopsis: "A teenager becomes a Soul Reaper.",
+      chapters: 686,
+      writer: "Tite Kubo",
+      status: "Finished"
+    },
+    {
+      title: "Dragon Ball",
+      img: "https://cdn.myanimelist.net/images/manga/3/145949.jpg",
+      tags: ["fighting", "adventure"],
+      synopsis: "The tale of Goku's adventures.",
+      chapters: 519,
+      writer: "Akira Toriyama",
+      status: "Finished"
+    },
+    {
+      title: "Baki",
+      img: "https://cdn.myanimelist.net/images/manga/1/259079.jpg",
+      tags: ["fighting", "martial arts"],
+      synopsis: "Martial arts combat and tournaments.",
+      chapters: 130,
+      writer: "Keisuke Itagaki",
+      status: "Ongoing"
+    },
+    {
+      title: "Attack on Titan",
+      img: "https://cdn.myanimelist.net/images/manga/1/54525.jpg",
+      tags: ["fighting", "action"],
+      synopsis: "Humanity vs Titans.",
+      chapters: 139,
+      writer: "Hajime Isayama",
+      status: "Finished"
+    },
+    {
+      title: "Kengan Ashura",
+      img: "https://cdn.myanimelist.net/images/manga/3/168231.jpg",
+      tags: ["fighting", "tournament"],
+      synopsis: "Underground fighting tournaments.",
+      chapters: 236,
+      writer: "Yabako Sandrovich",
+      status: "Finished"
+    },
+    {
+      title: "Hajime no Ippo",
+      img: "https://cdn.myanimelist.net/images/manga/2/253810.jpg",
+      tags: ["fighting", "boxing"],
+      synopsis: "The rise of a boxer.",
+      chapters: 1400,
+      writer: "George Morikawa",
+      status: "Ongoing"
+    }
+  ];
+
+  let savedMangas = [];
+  let filteredManga = [...mangaData];
+  let currentPage = 1;
+  const mangaPerPage = 9;
+
+  const mangaList = document.getElementById("mangaList");
+  const searchInput = document.getElementById("searchInput");
+  const pagination = document.getElementById("pagination");
+  const savedSection = document.getElementById("savedSection");
+  const detailsSection = document.getElementById("detailsSection");
+  const similarSection = document.getElementById("similarSection");
+  const logo = document.getElementById("logo");
+
+  function displayMangas(data) {
+    mangaList.innerHTML = "";
+    const start = (currentPage - 1) * mangaPerPage;
+    const end = start + mangaPerPage;
+    const pageMangas = data.slice(start, end);
+    pageMangas.forEach(manga => mangaList.appendChild(createCard(manga)));
+    renderPagination(data);
+    renderSaved();
+  }
+
+  function createCard(manga) {
+    const card = document.createElement("div");
+    card.className = "manga-card";
+    const saved = savedMangas.some(m => m.title === manga.title);
+    card.innerHTML = `
+      <img src="${manga.img}" alt="${manga.title}" />
+      <h2>${manga.title}</h2>
+      <button class="save-btn">${saved ? 'Unsave' : 'Save'}</button>
+    `;
+    card.querySelector("button").onclick = (e) => {
+      e.stopPropagation();
+      toggleSave(manga);
+    };
+    card.onclick = () => showDetails(manga);
+    return card;
+  }
+
+  function toggleSave(manga) {
+    const index = savedMangas.findIndex(m => m.title === manga.title);
+    if (index >= 0) {
+      savedMangas.splice(index, 1);
+    } else {
+      savedMangas.push(manga);
+    }
+    displayMangas(filteredManga);
+  }
+
+  function renderSaved() {
+    savedSection.innerHTML = "";
+    if (savedMangas.length === 0) return;
+    const title = document.createElement("h2");
+    title.className = "section-title";
+    title.textContent = "Saved Manga";
+    savedSection.appendChild(title);
+    const grid = document.createElement("div");
+    grid.className = "manga-grid";
+    savedMangas.forEach(m => grid.appendChild(createCard(m)));
+    savedSection.appendChild(grid);
+  }
+
+  function renderPagination(data) {
+    const totalPages = Math.ceil(data.length / mangaPerPage);
+    pagination.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.innerText = "Previous";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+      if (currentPage > 1) currentPage--;
+      displayMangas(filteredManga);
+    };
+
+    const pageLabel = document.createElement("span");
+    pageLabel.innerText = `Page ${currentPage} of ${totalPages}`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.innerText = "Next";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+      if (currentPage < totalPages) currentPage++;
+      displayMangas(filteredManga);
+    };
+
+    pagination.appendChild(prevBtn);
+    pagination.appendChild(pageLabel);
+    pagination.appendChild(nextBtn);
+  }
+
+  function showDetails(manga) {
+    detailsSection.innerHTML = `
+      <div class="section-title">Details</div>
+      <div class="details-panel">
+        <p><strong>Title:</strong> ${manga.title}</p>
+        <p><strong>Synopsis:</strong> ${manga.synopsis}</p>
+        <p><strong>Chapters:</strong> ${manga.chapters}</p>
+        <p><strong>Writer:</strong> ${manga.writer}</p>
+        <p><strong>Status:</strong> ${manga.status}</p>
+      </div>
+    `;
+    renderSimilar(manga);
+  }
+
+  function renderSimilar(manga) {
+    similarSection.innerHTML = "";
+    const similar = mangaData.filter(m =>
+      m.title !== manga.title &&
+      m.tags.some(tag => manga.tags.includes(tag))
+    );
+    if (similar.length === 0) return;
+    const title = document.createElement("h2");
+    title.className = "section-title";
+    title.textContent = "Similar Manga";
+    similarSection.appendChild(title);
+    const grid = document.createElement("div");
+    grid.className = "manga-grid";
+    similar.forEach(m => grid.appendChild(createCard(m)));
+    similarSection.appendChild(grid);
+  }
+
+  function filterManga() {
+    const query = searchInput.value.toLowerCase();
+    filteredManga = mangaData.filter(manga =>
+      manga.title.toLowerCase().includes(query) ||
+      manga.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+    currentPage = 1;
+    displayMangas(filteredManga);
+  }
+
+  searchInput.addEventListener("input", filterManga);
+  logo.onclick = () => {
+    searchInput.value = "";
+    filteredManga = [...mangaData];
+    currentPage = 1;
+    detailsSection.innerHTML = "";
+    similarSection.innerHTML = "";
+    displayMangas(filteredManga);
+  };
+
+  displayMangas(filteredManga);
+</script>
+
+</body>
+</html>
