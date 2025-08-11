@@ -1,374 +1,486 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manga Reader</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manga Reader</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --topbar:#2196F3; /* vivid blue */
+    --muted:#777;
+    --accent:#ff5722;
+    --card-shadow: 0 8px 28px rgba(15,15,15,0.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:#222;
+  }
 
-    header {
-      background: #292b2c;
-      color: white;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+  header{
+    background:var(--topbar);
+    color:white;
+    padding:14px 18px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  header h1{
+    margin:0;
+    font-size:20px;
+    cursor:pointer;
+    user-select:none;
+  }
+  #search-bar{
+    width:360px;
+    max-width:60vw;
+    padding:9px 12px;
+    border-radius:8px;
+    border:0;
+    font-size:14px;
+  }
 
-    #logo {
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+  nav{
+    background:var(--topbar);
+    padding:10px 12px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  nav button{
+    background:rgba(255,255,255,0.12);
+    color:white;
+    border:0;
+    padding:8px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+  }
+  nav button.active, nav button:hover{
+    background:rgba(255,255,255,0.22);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
 
-    header input {
-      padding: 0.5rem;
-      font-size: 16px;
-      width: 50%;
-    }
+  main{
+    padding:18px;
+    min-height:60vh;
+  }
 
-    #accountBtn {
-      background: #5cb85c;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-    }
+  #manga-container{
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:18px;
+    align-items:start;
+  }
 
-    .section-title {
-      font-size: 20px;
-      margin: 1rem 2rem 0.5rem;
-    }
+  .card{
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:var(--card-shadow);
+    display:flex;
+    flex-direction:column;
+    transition:transform .14s ease, box-shadow .14s ease;
+  }
+  .card:hover{
+    transform: translateY(-6px);
+    box-shadow:0 18px 48px rgba(15,15,15,0.12);
+  }
 
-    .manga-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      padding: 2rem;
-    }
+  .cover{
+    width:100%;
+    height:260px;
+    object-fit:cover;
+    display:block;
+    background:#eee;
+  }
 
-    .manga-card {
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      text-align: center;
-      padding: 0.5rem;
-      transition: 0.2s;
-      cursor: pointer;
-    }
+  .card-body{
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1;
+  }
+  .title{
+    font-size:15px;
+    font-weight:700;
+    line-height:1.2;
+    min-height:44px;
+  }
+  .meta{
+    color:var(--muted);
+    font-size:13px;
+  }
+  .card-actions{
+    display:flex;
+    gap:8px;
+    margin-top:auto;
+    align-items:center;
+  }
+  .btn{
+    border:0;
+    padding:8px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .save-btn{
+    background:var(--accent);
+    color:white;
+  }
+  .save-btn.saved{
+    background:#2e7d32;
+  }
+  .details-btn{
+    background:#efefef;
+    color:#222;
+  }
 
-    .manga-card:hover {
-      transform: scale(1.03);
-    }
+  #pagination{
+    padding:18px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  #pagination button{
+    padding:8px 10px;
+    background:#666;
+    color:white;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  #pagination button.active{
+    background:var(--accent);
+  }
 
-    .manga-card img {
-      height: 140px;
-      width: auto;
-      max-width: 100%;
-      object-fit: contain;
-      margin-bottom: 0.5rem;
-    }
+  #empty{
+    text-align:center;
+    color:var(--muted);
+    padding:36px 0;
+  }
 
-    .manga-card h2 {
-      font-size: 14px;
-      margin: 0.5rem 0;
-    }
+  .saved-badge{
+    display:inline-block;
+    background:#2e7d32;
+    color:white;
+    font-size:12px;
+    padding:4px 8px;
+    border-radius:8px;
+  }
 
-    .manga-card button {
-      margin-bottom: 0.5rem;
-      padding: 0.3rem 0.6rem;
-      border: none;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-
-    .pagination {
-      text-align: center;
-      padding: 1rem;
-    }
-
-    .pagination button {
-      margin: 0 5px;
-      padding: 0.5rem 1rem;
-      font-size: 16px;
-    }
-
-    .details-panel, #similarSection {
-      padding: 1rem 2rem;
-    }
-
-    .details-panel p {
-      margin: 0.3rem 0;
-    }
-  </style>
+  @media (max-width:900px){
+    #manga-container{ grid-template-columns: repeat(2,1fr); }
+    #search-bar{ width:220px; }
+  }
+  @media (max-width:560px){
+    header{ flex-direction:column; align-items:flex-start; }
+    #manga-container{ grid-template-columns: 1fr; }
+    #search-bar{ width:100%; }
+  }
+</style>
 </head>
 <body>
 
 <header>
-  <div id="logo">MangaReader</div>
-  <input type="text" id="searchInput" placeholder="Search manga..." />
-  <button id="accountBtn">Account</button>
+  <h1 id="logo">Manga Reader</h1>
+  <input id="search-bar" placeholder="Search manga title or author..." />
 </header>
 
-<section id="savedSection"></section>
-<section id="detailsSection"></section>
-<main class="manga-grid" id="mangaList"></main>
-<section id="similarSection"></section>
-<div class="pagination" id="pagination"></div>
+<nav>
+  <button data-category="all" class="active">All</button>
+  <button data-category="uma-musume">Uma Musume</button>
+  <button data-category="action">Action</button>
+  <button data-category="romance">Romance</button>
+  <button data-category="comedy">Comedy</button>
+  <button id="saved-view">Saved</button>
+  <div style="flex:1"></div>
+  <div style="color:white;font-size:13px">Showing <span id="results-count">0</span> items</div>
+</nav>
+
+<main>
+  <div id="manga-container" aria-live="polite"></div>
+  <div id="empty" style="display:none">No manga found.</div>
+</main>
+
+<div id="pagination" aria-label="Pagination"></div>
 
 <script>
-  const mangaData = [
-    {
-      title: "Cinderella Gray",
-      img: "https://cdn.myanimelist.net/images/manga/3/233332.jpg",
-      tags: ["uma musume", "sports", "drama"],
-      synopsis: "The story of Tokai Teio’s younger sister.",
-      chapters: 45,
-      writer: "Cygames",
-      status: "Ongoing"
-    },
-    {
-      title: "Starting Gate!",
-      img: "https://cdn.myanimelist.net/images/manga/3/197774.jpg",
-      tags: ["uma musume", "school", "sports"],
-      synopsis: "The school lives of the horse girls.",
-      chapters: 30,
-      writer: "Cygames",
-      status: "Finished"
-    },
-    {
-      title: "Umayon",
-      img: "https://cdn.myanimelist.net/images/manga/2/224610.jpg",
-      tags: ["uma musume", "comedy"],
-      synopsis: "A 4-koma comic based on Uma Musume.",
-      chapters: 24,
-      writer: "Cygames",
-      status: "Finished"
-    },
-    {
-      title: "Star Blossom",
-      img: "https://cdn.myanimelist.net/images/manga/1/262678.jpg",
-      tags: ["uma musume", "slice of life"],
-      synopsis: "Slice of life story from the Uma Musume world.",
-      chapters: 10,
-      writer: "Cygames",
-      status: "Ongoing"
-    },
-    {
-      title: "Naruto",
-      img: "https://cdn.myanimelist.net/images/manga/3/117681.jpg",
-      tags: ["fighting", "ninja"],
-      synopsis: "Naruto's journey to become Hokage.",
-      chapters: 700,
-      writer: "Masashi Kishimoto",
-      status: "Finished"
-    },
-    {
-      title: "Bleach",
-      img: "https://cdn.myanimelist.net/images/manga/3/52539.jpg",
-      tags: ["fighting", "action"],
-      synopsis: "A teenager becomes a Soul Reaper.",
-      chapters: 686,
-      writer: "Tite Kubo",
-      status: "Finished"
-    },
-    {
-      title: "Dragon Ball",
-      img: "https://cdn.myanimelist.net/images/manga/3/145949.jpg",
-      tags: ["fighting", "adventure"],
-      synopsis: "The tale of Goku's adventures.",
-      chapters: 519,
-      writer: "Akira Toriyama",
-      status: "Finished"
-    },
-    {
-      title: "Baki",
-      img: "https://cdn.myanimelist.net/images/manga/1/259079.jpg",
-      tags: ["fighting", "martial arts"],
-      synopsis: "Martial arts combat and tournaments.",
-      chapters: 130,
-      writer: "Keisuke Itagaki",
-      status: "Ongoing"
-    },
-    {
-      title: "Attack on Titan",
-      img: "https://cdn.myanimelist.net/images/manga/1/54525.jpg",
-      tags: ["fighting", "action"],
-      synopsis: "Humanity vs Titans.",
-      chapters: 139,
-      writer: "Hajime Isayama",
-      status: "Finished"
-    },
-    {
-      title: "Kengan Ashura",
-      img: "https://cdn.myanimelist.net/images/manga/3/168231.jpg",
-      tags: ["fighting", "tournament"],
-      synopsis: "Underground fighting tournaments.",
-      chapters: 236,
-      writer: "Yabako Sandrovich",
-      status: "Finished"
-    },
-    {
-      title: "Hajime no Ippo",
-      img: "https://cdn.myanimelist.net/images/manga/2/253810.jpg",
-      tags: ["fighting", "boxing"],
-      synopsis: "The rise of a boxer.",
-      chapters: 1400,
-      writer: "George Morikawa",
-      status: "Ongoing"
-    }
+const mangaList = [
+  { title:"Uma Musume: Cinderella Gray", cover:"https://i.imgur.com/mjmfDq2.jpg", category:"uma-musume", author:"Junnosuke Itō / Cygames", description:"A grounded retelling focused on Oguri Cap’s origin and gradual rise through racing. The series blends history-based horsegirl drama with human-style motivations." },
+  { title:"Uma Musume: Starting Gate!", cover:"https://i.imgur.com/hA8UtBA.jpg", category:"uma-musume", author:"Cygames / S. Kosugi", description:"Adaptation of the Starting Gate CD dramas. Follows the early training and school life of Special Week and friends at Tracen Academy." },
+  { title:"Uma Musume: Haru Urara's Big Race", cover:"https://i.imgur.com/ffvnkWs.jpg", category:"uma-musume", author:"Cygames", description:"A lighthearted story about underdog Haru Urara, her persistence, and how she keeps spirits high despite losing streaks." },
+  { title:"Uma Musume: Special Week’s Training Diary", cover:"https://i.imgur.com/kgy8mY0.jpg", category:"uma-musume", author:"Cygames", description:"Slice-of-life training notes following Special Week as she balances lessons, racing and friendships at Tracen." },
+  { title:"Uma Musume: Gold Ship's Misadventures", cover:"https://i.imgur.com/iqQ3LZa.jpg", category:"uma-musume", author:"Cygames", description:"Comedy-focused spin-off following Gold Ship’s chaotic, energetic antics on and off the track." },
+  { title:"Uma Musume: Mejiro McQueen Story", cover:"https://i.imgur.com/dVDZB1c.jpg", category:"uma-musume", author:"Cygames", description:"A more serious arc centered on Mejiro McQueen’s training methods, goals, and rivalry-driven growth." },
+  { title:"Uma Musume: Tokai Teio Arc", cover:"https://i.imgur.com/RYQ2Zu2.jpg", category:"uma-musume", author:"Cygames", description:"Tokai Teio’s powerful comeback tale — determination, injury, and the spirit of racing at full throttle." },
+  { title:"Uma Musume: Rice Shower's Legend", cover:"https://i.imgur.com/Y4PzIn3.jpg", category:"uma-musume", author:"Cygames", description:"A dramatic short depicting Rice Shower’s struggles and the emotional weight behind her performances." },
+  { title:"Uma Musume: Silence Suzuka Side Story", cover:"https://i.imgur.com/NrTqNdf.jpg", category:"uma-musume", author:"Cygames", description:"A bittersweet side story exploring Silence Suzuka’s speed, loneliness, and the relationships she forms." },
+  { title:"Uma Musume: Winning Ticket’s Path", cover:"https://i.imgur.com/oJl3Rqe.jpg", category:"uma-musume", author:"Cygames", description:"An arc following Winning Ticket’s growth, confidence-building races and training insights." },
+  { title:"Uma Musume: Daitaku Helios Chronicle", cover:"https://i.imgur.com/3yq9a3B.jpg", category:"uma-musume", author:"Cygames", description:"Centering Daitaku Helios, this story examines her temperament, competitiveness, and key races." },
+  { title:"Uma Musume: Mejiro Palmer's Debut", cover:"https://i.imgur.com/Lq7sXbR.jpg", category:"uma-musume", author:"Cygames", description:"Mejiro Palmer’s debut-focused chapters — nerves, talents, and the first steps toward stardom." },
+
+  { title:"One Piece", cover:"https://i.imgur.com/6WjT3sP.jpg", category:"action", author:"Eiichiro Oda", description:"Monkey D. Luffy sails for the Grand Line to find the One Piece and become Pirate King — adventure, friendship, and epic fights." },
+  { title:"Naruto", cover:"https://i.imgur.com/q6PdvLk.jpg", category:"action", author:"Masashi Kishimoto", description:"Naruto Uzumaki trains to become Hokage while forming bonds and facing threats, carrying the Nine-Tails within." },
+  { title:"Bleach", cover:"https://i.imgur.com/RlgNue1.jpg", category:"action", author:"Tite Kubo", description:"Ichigo Kurosaki becomes a Soul Reaper and protects the living world from Hollows while uncovering supernatural conspiracies." },
+  { title:"Attack on Titan", cover:"https://i.imgur.com/zYj5TnI.jpg", category:"action", author:"Hajime Isayama", description:"Humanity fights gigantic Titans; Eren and friends uncover dark secrets about their world and the walls that protect them." },
+  { title:"Fullmetal Alchemist", cover:"https://i.imgur.com/8GZhm4N.jpg", category:"action", author:"Hiromu Arakawa", description:"The Elric brothers use alchemy to search for the Philosopher’s Stone to restore what they lost, exploring morality and sacrifice." },
+  { title:"Hunter x Hunter", cover:"https://i.imgur.com/1UP7mcB.jpg", category:"action", author:"Yoshihiro Togashi", description:"Gon becomes a Hunter to find his father and meets friends who face brutal exams and dangerous foes." },
+  { title:"My Hero Academia", cover:"https://i.imgur.com/LzwnmTi.jpg", category:"action", author:"Kohei Horikoshi", description:"In a world where quirks are normal, Izuku trains at U.A. High to become a professional hero despite being born quirkless." },
+  { title:"Black Clover", cover:"https://i.imgur.com/qZ9joFc.jpg", category:"action", author:"Yuki Tabata", description:"Asta, born without magic, aims to become Wizard King by sheer effort and unbreakable spirit." },
+  { title:"Demon Slayer", cover:"https://i.imgur.com/mnE26NH.jpg", category:"action", author:"Koyoharu Gotouge", description:"Tanjiro joins the Demon Slayer Corps after his family is slaughtered and his sister turned into a demon." },
+  { title:"Blue Lock", cover:"https://i.imgur.com/GEL3nwn.jpg", category:"action", author:"Muneyuki Kaneshiro", description:"A harsh training program to create Japan’s ultimate striker by emphasizing ego and competitiveness." },
+
+  { title:"Haikyuu!!", cover:"https://i.imgur.com/Y5pcgRQ.jpg", category:"action", author:"Haruichi Furudate", description:"Shōyō Hinata aims to reach volleyball greatness despite his height disadvantage, driving Karasuno to fight for glory." },
+
+  { title:"My Dress-Up Darling", cover:"https://i.imgur.com/m15d7m1.jpg", category:"romance", author:"Shinichi Fukuda", description:"A shy hina doll craftsman helps an outgoing classmate with cosplay; a sweet rom-com about passion and growth." },
+  { title:"Kimi ni Todoke", cover:"https://i.imgur.com/1zVRtfJ.jpg", category:"romance", author:"Karuho Shiina", description:"Sawako, misunderstood for her appearance, slowly opens up through friendships and romance." },
+  { title:"Horimiya", cover:"https://i.imgur.com/g1wdAr2.jpg", category:"romance", author:"HERO", description:"A romantic slice-of-life showing the hidden sides of two students who fall for each other." },
+  { title:"Ao Haru Ride", cover:"https://i.imgur.com/BxE1dBy.jpg", category:"romance", author:"Io Sakisaka", description:"Futaba reconnects with a changed middle-school crush and learns about growth, regrets, and love." },
+  { title:"Nisekoi", cover:"https://i.imgur.com/IeYn1G6.jpg", category:"romance", author:"Naoshi Komi", description:"A fake-romance between rival gangs’ heirs turns into romantic confusion and mystery about a childhood promise." },
+  { title:"Lovely★Complex", cover:"https://i.imgur.com/s6Odp5L.jpg", category:"romance", author:"Ajiichi", description:"A tall girl and a short boy fight their complexes and realize unexpected feelings in this romantic comedy." },
+  { title:"Tonikaku Kawaii", cover:"https://i.imgur.com/5h3JwAB.jpg", category:"romance", author:"Kenjirou Hata", description:"A newlywed couple’s adorable domestic life — gentle humor and heartfelt moments." },
+  { title:"Clannad", cover:"https://i.imgur.com/ZMsOkqM.jpg", category:"romance", author:"Key / Jun Maeda", description:"A heartfelt drama following Tomoya and his friends as they confront family, trauma, and the future." },
+  { title:"Your Lie in April", cover:"https://i.imgur.com/bzqVptE.jpg", category:"romance", author:"Naoshi Arakawa", description:"A piano prodigy rediscovers music through a brilliant violinist; a bittersweet story about healing." },
+  { title:"Fruits Basket", cover:"https://i.imgur.com/b6scgJQ.jpg", category:"romance", author:"Natsuki Takaya", description:"A girl changes the lives of a family cursed to transform into zodiac animals, bringing healing and love." },
+
+  { title:"Kaguya-sama: Love is War", cover:"https://i.imgur.com/b9vyrgd.jpg", category:"comedy", author:"Aka Akasaka", description:"Student-council leaders battle with mind games trying to get the other to confess first — hilarious strategy and romance." },
+  { title:"Nichijou", cover:"https://i.imgur.com/nzRhwMb.jpg", category:"comedy", author:"Keiichi Arawi", description:"Absurdist daily-life comedy that turns the mundane into surreal, chaotic laughs." },
+  { title:"Saiki Kusuo no Psi-nan", cover:"https://i.imgur.com/4XIkzXt.jpg", category:"comedy", author:"Shuichi Aso", description:"A powerful psychic wants a normal life but keeps being dragged into bizarre situations by classmates." },
+  { title:"Grand Blue", cover:"https://i.imgur.com/nvKwT5h.jpg", category:"comedy", author:"Kenji Inoue", description:"College diving-club comedy with drunken antics and surprisingly sincere character beats." },
+  { title:"Asobi Asobase", cover:"https://i.imgur.com/jEo1JbG.jpg", category:"comedy", author:"Julietta Suzuki", description:"Gag-filled school comedy revolving around three eccentric girls and their ridiculous games." },
+  { title:"Gintama", cover:"https://i.imgur.com/ZdOkLOX.jpg", category:"comedy", author:"Hideaki Sorachi", description:"Anachronistic samurai comedy mixing parody, slapstick, and unexpectedly emotional arcs." },
+  { title:"Seitokai Yakuindomo", cover:"https://i.imgur.com/1Q75oBR.jpg", category:"comedy", author:"Tozen Ujiie", description:"Student-council comedy packed with adult-leaning jokes and nonstop banter." },
+
+  { title:"Yotsuba&!", cover:"https://i.imgur.com/16wEZpS.jpg", category:"comedy", author:"Kiyohiko Azuma", description:"A heartwarming slice-of-life about a curious little girl discovering the world." },
+  { title:"Spy x Family", cover:"https://i.imgur.com/SAYXgGk.jpg", category:"comedy", author:"Tatsuya Endo", description:"A spy, an assassin and a telepath form a fake family whose life becomes genuinely heartfelt and chaotic." },
+  { title:"Black Lagoon", cover:"https://i.imgur.com/8nG3kYV.jpg", category:"action", author:"Rei Hiroe", description:"Gritty noir about mercenaries and the criminal underworld in Southeast Asia." },
+  { title:"Chainsaw Man", cover:"https://i.imgur.com/W8y7n5e.jpg", category:"action", author:"Tatsuki Fujimoto", description:"A violent, strange, and emotional tale about a devil hunter bonded to a chainsaw demon." },
+  { title:"Tokyo Ghoul", cover:"https://i.imgur.com/9b3h7QF.jpg", category:"action", author:"Sui Ishida", description:"Kaneki’s life changes after becoming part-ghoul; identity, hunger and morality collide." },
+  { title:"Mob Psycho 100", cover:"https://i.imgur.com/7hZ8XwV.jpg", category:"comedy", author:"ONE", description:"A powerful psychic boy struggles to balance his emotions and the effects of his ability." }
+];
+
+(function ensureCount(){
+  const fillers = [
+    { title:"Extra Chapter: Racing Days", cover:"https://i.imgur.com/0bB5i3g.jpg", category:"uma-musume", author:"Various", description:"Bonus racing short." },
+    { title:"Extra Romance A", cover:"https://i.imgur.com/2t3bF6a.jpg", category:"romance", author:"Various", description:"Short romance vignette." },
+    { title:"Extra Comedy B", cover:"https://i.imgur.com/4g3dE1q.jpg", category:"comedy", author:"Various", description:"Short gag collection." },
+    { title:"Extra Action C", cover:"https://i.imgur.com/9kN2hKZ.jpg", category:"action", author:"Various", description:"Action-packed one-shot." },
+    { title:"Extra Slice D", cover:"https://i.imgur.com/5nW9L6q.jpg", category:"romance", author:"Various", description:"Slice-of-life short." }
   ];
-
-  let savedMangas = [];
-  let filteredManga = [...mangaData];
-  let currentPage = 1;
-  const mangaPerPage = 9;
-
-  const mangaList = document.getElementById("mangaList");
-  const searchInput = document.getElementById("searchInput");
-  const pagination = document.getElementById("pagination");
-  const savedSection = document.getElementById("savedSection");
-  const detailsSection = document.getElementById("detailsSection");
-  const similarSection = document.getElementById("similarSection");
-  const logo = document.getElementById("logo");
-
-  function displayMangas(data) {
-    mangaList.innerHTML = "";
-    const start = (currentPage - 1) * mangaPerPage;
-    const end = start + mangaPerPage;
-    const pageMangas = data.slice(start, end);
-    pageMangas.forEach(manga => mangaList.appendChild(createCard(manga)));
-    renderPagination(data);
-    renderSaved();
+  while(mangaList.length < 45){
+    mangaList.push(fillers[mangaList.length % fillers.length]);
   }
+})();
 
-  function createCard(manga) {
-    const card = document.createElement("div");
-    card.className = "manga-card";
-    const saved = savedMangas.some(m => m.title === manga.title);
+let savedManga = JSON.parse(localStorage.getItem("savedManga") || "[]");
+let currentList = [...mangaList];
+let currentCategory = "all";
+let currentQuery = "";
+let currentPage = 1;
+const ITEMS_PER_PAGE = 9;
+
+const container = document.getElementById("manga-container");
+const pagination = document.getElementById("pagination");
+const searchBar = document.getElementById("search-bar");
+const navButtons = Array.from(document.querySelectorAll("nav button[data-category]"));
+const savedViewBtn = document.getElementById("saved-view");
+const resultsCountEl = document.getElementById("results-count");
+const emptyEl = document.getElementById("empty");
+const logo = document.getElementById("logo");
+
+function saveLocal(){ localStorage.setItem("savedManga", JSON.stringify(savedManga)); }
+function escapeHtml(s){ if(!s) return ""; return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function capitalize(s){ return s && s[0].toUpperCase() + s.slice(1); }
+
+function applyFilters(){
+  let list = mangaList.slice();
+  if(currentCategory && currentCategory !== "all" && currentCategory !== "saved"){
+    list = list.filter(m => m.category === currentCategory);
+  }
+  if(currentQuery && currentQuery.trim() !== ""){
+    const q = currentQuery.trim().toLowerCase();
+    list = list.filter(m => (m.title && m.title.toLowerCase().includes(q)) || (m.author && m.author.toLowerCase().includes(q)) || (m.description && m.description.toLowerCase().includes(q)));
+  }
+  if(currentCategory === "saved"){
+    list = list.filter(m => savedManga.includes(m.title));
+  }
+  currentList = list;
+  currentPage = 1;
+  render();
+}
+
+function render(){
+  const total = currentList.length;
+  resultsCountEl.textContent = total;
+  if(total === 0){
+    container.innerHTML = ""; pagination.innerHTML = ""; emptyEl.style.display = "block"; return;
+  } else { emptyEl.style.display = "none"; }
+
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const pageItems = currentList.slice(start, end);
+
+  container.innerHTML = "";
+  for(const m of pageItems){
+    const card = document.createElement("article");
+    card.className = "card";
     card.innerHTML = `
-      <img src="${manga.img}" alt="${manga.title}" />
-      <h2>${manga.title}</h2>
-      <button class="save-btn">${saved ? 'Unsave' : 'Save'}</button>
-    `;
-    card.querySelector("button").onclick = (e) => {
-      e.stopPropagation();
-      toggleSave(manga);
-    };
-    card.onclick = () => showDetails(manga);
-    return card;
-  }
-
-  function toggleSave(manga) {
-    const index = savedMangas.findIndex(m => m.title === manga.title);
-    if (index >= 0) {
-      savedMangas.splice(index, 1);
-    } else {
-      savedMangas.push(manga);
-    }
-    displayMangas(filteredManga);
-  }
-
-  function renderSaved() {
-    savedSection.innerHTML = "";
-    if (savedMangas.length === 0) return;
-    const title = document.createElement("h2");
-    title.className = "section-title";
-    title.textContent = "Saved Manga";
-    savedSection.appendChild(title);
-    const grid = document.createElement("div");
-    grid.className = "manga-grid";
-    savedMangas.forEach(m => grid.appendChild(createCard(m)));
-    savedSection.appendChild(grid);
-  }
-
-  function renderPagination(data) {
-    const totalPages = Math.ceil(data.length / mangaPerPage);
-    pagination.innerHTML = "";
-    if (totalPages <= 1) return;
-
-    const prevBtn = document.createElement("button");
-    prevBtn.innerText = "Previous";
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => {
-      if (currentPage > 1) currentPage--;
-      displayMangas(filteredManga);
-    };
-
-    const pageLabel = document.createElement("span");
-    pageLabel.innerText = `Page ${currentPage} of ${totalPages}`;
-
-    const nextBtn = document.createElement("button");
-    nextBtn.innerText = "Next";
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => {
-      if (currentPage < totalPages) currentPage++;
-      displayMangas(filteredManga);
-    };
-
-    pagination.appendChild(prevBtn);
-    pagination.appendChild(pageLabel);
-    pagination.appendChild(nextBtn);
-  }
-
-  function showDetails(manga) {
-    detailsSection.innerHTML = `
-      <div class="section-title">Details</div>
-      <div class="details-panel">
-        <p><strong>Title:</strong> ${manga.title}</p>
-        <p><strong>Synopsis:</strong> ${manga.synopsis}</p>
-        <p><strong>Chapters:</strong> ${manga.chapters}</p>
-        <p><strong>Writer:</strong> ${manga.writer}</p>
-        <p><strong>Status:</strong> ${manga.status}</p>
+      <img class="cover" src="${escapeHtml(m.cover)}" alt="${escapeHtml(m.title)} cover" loading="lazy" onerror="this.onerror=null;this.src='https://i.imgur.com/0H4eQ6a.png'">
+      <div class="card-body">
+        <div class="title">${escapeHtml(m.title)}</div>
+        <div class="meta">${escapeHtml(m.author || '')} ${m.category ? ' • ' + escapeHtml(capitalize(m.category)) : ''}</div>
+        <div class="card-actions">
+          <button class="btn save-btn ${savedManga.includes(m.title) ? 'saved' : ''}">${savedManga.includes(m.title) ? 'Saved' : 'Save'}</button>
+          <button class="btn details-btn">Details</button>
+          <div style="margin-left:auto">${savedManga.includes(m.title) ? '<span class="saved-badge">Saved</span>' : ''}</div>
+        </div>
       </div>
     `;
-    renderSimilar(manga);
+    card.querySelector(".save-btn").addEventListener("click", () => { toggleSave(m.title); });
+    card.querySelector(".details-btn").addEventListener("click", () => { showDetails(m); });
+    container.appendChild(card);
   }
 
-  function renderSimilar(manga) {
-    similarSection.innerHTML = "";
-    const similar = mangaData.filter(m =>
-      m.title !== manga.title &&
-      m.tags.some(tag => manga.tags.includes(tag))
-    );
-    if (similar.length === 0) return;
-    const title = document.createElement("h2");
-    title.className = "section-title";
-    title.textContent = "Similar Manga";
-    similarSection.appendChild(title);
-    const grid = document.createElement("div");
-    grid.className = "manga-grid";
-    similar.forEach(m => grid.appendChild(createCard(m)));
-    similarSection.appendChild(grid);
+  renderPagination(total);
+}
+
+function renderPagination(totalItems){
+  pagination.innerHTML = "";
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  if(totalPages <= 1) return;
+
+  const prev = document.createElement("button");
+  prev.textContent = "Prev";
+  prev.disabled = currentPage === 1;
+  prev.addEventListener("click", () => { if(currentPage>1){ currentPage--; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
+  pagination.appendChild(prev);
+
+  for(let i=1;i<=totalPages;i++){
+    const btn = document.createElement("button");
+    btn.textContent = String(i);
+    if(i===currentPage) btn.classList.add("active");
+    btn.addEventListener("click", () => { currentPage = i; render(); window.scrollTo({top:0,behavior:'smooth'}); });
+    pagination.appendChild(btn);
   }
 
-  function filterManga() {
-    const query = searchInput.value.toLowerCase();
-    filteredManga = mangaData.filter(manga =>
-      manga.title.toLowerCase().includes(query) ||
-      manga.tags.some(tag => tag.toLowerCase().includes(query))
-    );
-    currentPage = 1;
-    displayMangas(filteredManga);
-  }
+  const next = document.createElement("button");
+  next.textContent = "Next";
+  next.disabled = currentPage === totalPages;
+  next.addEventListener("click", () => { if(currentPage<totalPages){ currentPage++; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
+  pagination.appendChild(next);
+}
 
-  searchInput.addEventListener("input", filterManga);
-  logo.onclick = () => {
-    searchInput.value = "";
-    filteredManga = [...mangaData];
-    currentPage = 1;
-    detailsSection.innerHTML = "";
-    similarSection.innerHTML = "";
-    displayMangas(filteredManga);
-  };
+function toggleSave(title){
+  if(savedManga.includes(title)) savedManga = savedManga.filter(t => t !== title);
+  else savedManga.push(title);
+  saveLocal();
+  render();
+}
 
-  displayMangas(filteredManga);
+function showDetails(m){
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.45)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
+
+  const panel = document.createElement("div");
+  panel.style.width = "min(840px,96%)";
+  panel.style.background = "white";
+  panel.style.borderRadius = "12px";
+  panel.style.overflow = "hidden";
+  panel.style.boxShadow = "0 20px 60px rgba(0,0,0,0.25)";
+  panel.style.display = "flex";
+  panel.style.gap = "16px";
+  panel.style.padding = "18px";
+
+  panel.innerHTML = `
+    <div style="flex:0 0 240px;">
+      <img src="${escapeHtml(m.cover)}" style="width:240px;height:320px;object-fit:cover;border-radius:6px" alt="">
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <h2 style="margin:0">${escapeHtml(m.title)}</h2>
+        <div style="color:var(--muted);margin-top:6px">${escapeHtml(m.author || '')}</div>
+      </div>
+      <p style="color:#333;line-height:1.45;margin-top:12px;white-space:pre-wrap">${escapeHtml(m.description || 'No description available.')}</p>
+      <div style="margin-top:auto;display:flex;gap:8px;justify-content:flex-end">
+        <button id="detail-save" class="btn save-btn ${savedManga.includes(m.title) ? 'saved' : ''}">${savedManga.includes(m.title) ? 'Saved' : 'Save'}</button>
+        <button id="detail-close" class="btn details-btn">Close</button>
+      </div>
+    </div>
+  `;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  document.getElementById("detail-close").addEventListener("click", () => overlay.remove());
+  document.getElementById("detail-save").addEventListener("click", () => {
+    toggleSave(m.title);
+    const btn = document.getElementById("detail-save");
+    if(savedManga.includes(m.title)){ btn.classList.add("saved"); btn.textContent = "Saved"; } else { btn.classList.remove("saved"); btn.textContent = "Save"; }
+  });
+}
+
+searchBar.addEventListener("input", (e) => {
+  currentQuery = e.target.value || "";
+  applyFilters();
+});
+
+Array.from(document.querySelectorAll("nav button[data-category]")).forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    savedViewBtn.classList.remove("active");
+    btn.classList.add("active");
+    currentCategory = btn.dataset.category || "all";
+    currentQuery = searchBar.value || "";
+    applyFilters();
+  });
+});
+
+savedViewBtn.addEventListener("click", () => {
+  savedViewBtn.classList.add("active");
+  document.querySelectorAll("nav button[data-category]").forEach(b => b.classList.remove("active"));
+  currentCategory = "saved";
+  currentQuery = "";
+  searchBar.value = "";
+  currentList = mangaList.filter(m => savedManga.includes(m.title));
+  currentPage = 1;
+  render();
+});
+
+logo.addEventListener("click", () => {
+  currentCategory = "all";
+  currentQuery = "";
+  searchBar.value = "";
+  currentPage = 1;
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.querySelector("nav button[data-category='all']").classList.add("active");
+  savedViewBtn.classList.remove("active");
+  currentList = mangaList.slice();
+  render();
+});
+
+document.querySelector("nav button[data-category='all']").classList.add("active");
+currentList = mangaList.slice();
+render();
+
+window.__MANGA_APP = {
+  mangaList,
+  add: m => { mangaList.push(m); applyFilters(); },
+  getSaved: () => JSON.parse(localStorage.getItem("savedManga") || "[]")
+};
 </script>
 
 </body>
