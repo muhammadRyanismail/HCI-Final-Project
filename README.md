@@ -10,3 +10,4 @@ https://developer.mozilla.org/en-US/docs/Web/HTML
 https://developer.mozilla.org/en-US/docs/Web/CSS
 https://developer.mozilla.org/en-US/docs/Web/JavaScript
 (and semester 1 from troy's ppt)
+https://www.youtube.com/watch?v=3mLo0foh1LA&list=PLnkHcDuPoB7XFqRMo8t6V7PpJfCcyS4ir
